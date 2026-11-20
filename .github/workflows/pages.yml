@@ -1,0 +1,61 @@
+name: Radar Karier
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', 'radar/**', 'scripts/**', 'tests/**', 'sync_jobs.py', 'requirements.txt', '.github/workflows/pages.yml']
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */6 * * *'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: radar-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install -r requirements.txt
+      - run: node --test tests/*.test.mjs
+      - name: Collect and encrypt (when password is configured)
+        env:
+          RADAR_PASSWORD: ${{ secrets.RADAR_PASSWORD }}
+          RADAR_SEED: ${{ secrets.RADAR_SEED }}
+        run: |
+          if [ -n "$RADAR_PASSWORD" ]; then
+            node scripts/sync-encrypted.mjs
+          else
+            echo 'Password not configured. Publishing locked shell only.'
+          fi
+      - name: Save encrypted snapshot only
+        run: |
+          if [ -f web/data.enc.json ]; then
+            git config user.name 'radar-karier-bot'
+            git config user.email 'radar-karier-bot@users.noreply.github.com'
+            git add web/data.enc.json
+            if ! git diff --cached --quiet; then
+              git commit -m 'data: encrypted career sync [skip ci]'
+              git push
+            fi
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - name: Publish encrypted dashboard
+        id: deploy
+        uses: actions/deploy-pages@v4
