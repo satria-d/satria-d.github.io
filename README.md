@@ -12,7 +12,7 @@ Only `web/` is published. Data is encrypted before commit and upload with AES-25
 
 The shell and encrypted bytes are public. This is encryption, not server-side authentication: weak passwords can be guessed offline, and anyone who knows the password can read and share the data. Use a unique strong password. Historical ciphertext remains in Git history; changing the password does not revoke old copies. Password changes deliberately fail closed if old data cannot be decrypted; perform a deliberate re-encryption migration before rotating.
 
-Old private project `satria-d/radar-karier` remains private and retains its existing data. This public Pages repo does not expose that repo or its plaintext records. The standalone collector initially discovers public jobs itself.
+Old private project `satria-d/radar-karier` remains private and retains its existing data. This public Pages repo does not expose that repo or its plaintext records. Optional bootstrap secret RADAR_SEED holds the compressed legacy snapshot, read only before the first encrypted snapshot exists. Thereafter the collector decrypts and merges the previous encrypted snapshot, preserving history across source outages. No cross-repository token is needed.
 
 ## Source integrity
 

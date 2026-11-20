@@ -12,7 +12,8 @@ try{
   if(process.env.RADAR_SEED)previous=JSON.parse(gunzipSync(Buffer.from(process.env.RADAR_SEED,'base64')).toString('utf8'));
  }
  await writeFile(path,JSON.stringify(previous),{mode:0o600});
- const run=spawnSync('python',['sync_jobs.py','--path',path],{encoding:'utf8',timeout:600000,maxBuffer:1000000});
+ const childEnv={...process.env};delete childEnv.RADAR_PASSWORD;delete childEnv.RADAR_SEED;
+ const run=spawnSync('python',['sync_jobs.py','--path',path],{encoding:'utf8',env:childEnv,timeout:600000,maxBuffer:1000000});
  if(run.status!==0)throw Error('Collector failed; previous encrypted data preserved.');
  const data=JSON.parse(await readFile(path,'utf8'));
  if(!data.sources?.some(s=>s.status==='ok'))throw Error('All sources failed; previous encrypted data preserved.');
