@@ -7,6 +7,7 @@ on:
   schedule:
     - cron: '23 */6 * * *'
 permissions:
+  actions: read
   contents: write
   pages: write
   id-token: write
@@ -19,7 +20,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy_retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -54,8 +55,42 @@ jobs:
           fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
+        id: artifact
         with:
           path: web
+      - name: Wait for uploaded Pages artifact
+        uses: actions/github-script@v8
+        env:
+          PAGES_ARTIFACT_ID: ${{ steps.artifact.outputs.artifact_id }}
+        with:
+          script: |
+            const {waitForArtifact} = await import(`${process.env.GITHUB_WORKSPACE}/scripts/pages-artifact.mjs`);
+            await waitForArtifact(async () => {
+              const {data} = await github.rest.actions.listWorkflowRunArtifacts({
+                ...context.repo, run_id: context.runId, name: 'github-pages', per_page: 100,
+              });
+              return data.artifacts;
+            }, {
+              expectedId: process.env.PAGES_ARTIFACT_ID,
+              onRetry: attempt => core.info(`Waiting for Pages artifact visibility (check ${attempt}/6).`),
+            });
+            core.info('Uploaded Pages artifact is available.');
       - name: Publish encrypted dashboard
         id: deploy
+        continue-on-error: true
         uses: actions/deploy-pages@v4
+        with:
+          timeout: 300000
+      - name: Wait before retrying Pages deployment
+        if: ${{ steps.deploy.outcome == 'failure' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            core.info('Pages deployment failed; retrying the same uploaded artifact in 20 seconds.');
+            await new Promise(resolve => setTimeout(resolve, 20000));
+      - name: Retry encrypted dashboard deployment
+        if: ${{ steps.deploy.outcome == 'failure' }}
+        id: deploy_retry
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 300000
