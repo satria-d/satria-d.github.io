@@ -1,5 +1,9 @@
 export const categories=['MT / ODP','Aktuaria','Risk & Kredit','Data & BI','Perbankan'];
 export const colors={'MT / ODP':'green',Aktuaria:'purple','Risk & Kredit':'blue','Data & BI':'sand',Perbankan:'teal'};
+export function relevanceScore(value){
+ if(typeof value!=='number'&&typeof value!=='string'||typeof value==='string'&&!value.trim())return null;
+ const score=Number(value);return Number.isFinite(score)&&score>=0&&score<=100?score:null;
+}
 export function today(now=new Date()){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
 export function daysAgo(value,now=new Date()){return value?Math.floor((Date.parse(today(now))-Date.parse(value.slice(0,10)))/86400000):null;}
 export function ageLabel(value,approx=false,now=new Date()){const days=daysAgo(value,now);if(days===null||!Number.isFinite(days)||days<0)return'Tanggal posting belum tercantum';return(approx?'≈ ':'')+(days===0?'Hari ini':days===1?'Kemarin':days<7?days+' hari lalu':days<30?Math.floor(days/7)+' minggu lalu':days<365?Math.floor(days/30)+' bulan lalu':Math.floor(days/365)+' tahun lalu');}

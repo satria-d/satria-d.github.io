@@ -2,7 +2,7 @@ name: Radar Karier
 on:
   push:
     branches: [main]
-    paths: ['web/**', 'radar/**', 'scripts/**', 'tests/**', 'sync_jobs.py', 'requirements.txt', '.github/workflows/pages.yml']
+    paths: ['web/**', 'radar/**', 'scripts/**', 'tests/**', 'sync_jobs.py', 'requirements.txt', 'package.json', 'package-lock.json', '.github/workflows/pages.yml']
   workflow_dispatch:
   schedule:
     - cron: '23 */6 * * *'
@@ -30,7 +30,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - run: pip install -r requirements.txt
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: node --test tests/*.test.mjs
       - name: Collect and encrypt (when password is configured)
         env:

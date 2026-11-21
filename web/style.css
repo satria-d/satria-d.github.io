@@ -122,3 +122,16 @@ footer { margin-top:22px; border-top:1px solid var(--line); color:var(--muted); 
 
 .hero-stats [data-icon]{grid-column:1;grid-row:1}.hero-stats strong{grid-column:2;grid-row:1}
 @media(min-width:751px){.job-meta{display:flex;flex-wrap:wrap;gap:7px 12px}.job-dates{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}}
+
+/* Descriptions retain readable source formatting without source attributes. */
+.evidence-body{margin:8px 0;padding:11px 12px;background:#f7faf4;border-radius:8px;white-space:pre-line;overflow-wrap:anywhere;color:#52695b}
+.evidence-body p{margin:0 0 9px;padding:0;background:none;border-radius:0}
+.evidence-body p:last-child{margin-bottom:0}
+.evidence-body ul,.evidence-body ol{margin:7px 0 12px;padding-left:21px;white-space:normal}
+.evidence-body li{margin:5px 0;padding-left:2px}
+.evidence-body strong,.evidence-body b,.evidence-body h4{color:#2f503b;font-weight:700}
+.evidence-body h4{font:700 12px/1.5 "DM Sans",sans-serif;margin:11px 0 6px}
+.job-meta>.job-relevance{flex-basis:100%;width:fit-content;display:flex;align-items:center;gap:6px;color:#315d40;font-size:11px;margin-bottom:3px}
+.job-relevance>strong{padding:3px 8px;border:1px solid #d5e4cb;background:#edf5e7;border-radius:20px;font-size:12px;line-height:1.3;font-variant-numeric:tabular-nums;white-space:nowrap}
+.job-relevance>svg{color:#4a7953}
+@media(max-width:750px){.job-meta>.job-relevance{font-size:12px}.evidence-body{padding:12px}.evidence-body li{margin:7px 0}}
